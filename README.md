@@ -46,12 +46,16 @@ project and usage: http://bcbio-nextgen.readthedocs.io/en/latest/
    `ICONIC_UCL_pipeline/Scripts/command_line_HIV_pipeline.sh`. You should not
    need to change these for a ready to go installation like on Odyssey.
 
-3. Create tab-delimited file of sampleID, forward read path, reverse read path
+3. Create tab-delimited file of sampleID, forward read path, reverse read path.
+   This should be called `samples.tsv` and can be in any directory.
 
 4. Run job for each sample number in the file. There are example scripts on
    Odyssey that do this for multiple samples, but the basic command line is:
 
         bash ICONIC_UCL_pipeline/Scripts/command_line_HIV_pipeline.sh 1
+
+   For a practical run, copy the `run.sh` script from an `iconic_ucl_pipeline`
+   directory and edit to specify the samples you want run.
 
 By default the pipeline uses 8 cores for each sample run. It ran relatively
 quickly for 96 samples using 8 cores today on a single machine.
@@ -61,29 +65,35 @@ quickly for 96 samples using 8 cores today on a single machine.
 ### Base directories
 
 - Base: /net/hsphfs1/srv/export/hsphfs1/share_root/chb/projects/novitsky_hiv
-- UCL Pipeline runs: iconic_ucl_pipeline/
-- UCL Pipeline code: iconic_ucl_pipeline/ICONIC_UCL_pipeline
+- UCL Pipeline code: ICONIC_UCL_pipeline
+- UCL Pipeline runs: FLOWCELL/iconic_ucl_pipeline/
 
 ### UCL pipeline Example runs
 
-- All samples: iconic_ucl_pipeline/run_all
+- All samples: FLOWCELL/iconic_ucl_pipeline/run_all
    - samples.tsv -- list of all samples
    - run.sh -- script to submit job (`sbatch run.sh`)
 
-- Single sample: iconic_ucl_pipeline/GEN00075776
+- Single sample: FC02539/iconic_ucl_pipeline/GEN00075776
    - samples.tsv -- single sample list
    - run.sh -- script to submit job (`sbatch run.sh`)
+
+You need to supply your own `samples.tsv` for each run, and can generally use
+the `run.sh` script with only changes to the sample numbers to run.
 
 ### QC pipeline
 
 Run in the base directory using bcbio (https://github.com/chapmanb/bcbio-nextgen)
 
-- Configuration files: config/FC02539.yaml
-   - Script to create sample CSV file from fastqs: prep_samples.py
-   - Script to create final configuration: prep_config.sh
+- Configuration files: `FC02668/config/FC02668.yaml`
+   - Script to create sample CSV file from fastqs: `prep_samples.py`
+   - Script to create final configuration: `prep_config.sh`
 - Run analysis: work
-   - cd work && sbatch ../submit_bcbio.sh
-   - final output QC report: final/2016-11-08_FC02539/multiqc/multiqc_report.html
+   - `cd work && sbatch ../submit_bcbio.sh`
+   - final output QC report: `FC02668/final/2016-11-08_FC02539/multiqc/multiqc_report.html`
+
+You can copy and use these three scripts but will have to adjust input files and output
+naming to match the new flowcell.
 
 ## Installation
 
