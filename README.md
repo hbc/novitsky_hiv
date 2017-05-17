@@ -32,7 +32,7 @@ project and usage: http://bcbio-nextgen.readthedocs.io/en/latest/
 
 3. Run analysis from configuration file, distributing on the cluster. We
    normally run from a `work` directory and there is an example script on
-   Odyssey for how to submit. In non-Odyssey environemnts you can run in
+   Odyssey for how to submit. In non-Odyssey environments you can run in
    parallel on a single machine with multiple cores using:
 
         bcbio_nextgen.py ../config/your_config.yaml -n 8`
@@ -64,17 +64,17 @@ quickly for 96 samples using 8 cores today on a single machine.
 
 ### Base directories
 
-- Base: /net/hsphfs1/srv/export/hsphfs1/share_root/chb/projects/novitsky_hiv
-- UCL Pipeline code: ICONIC_UCL_pipeline
-- UCL Pipeline runs: FLOWCELL/iconic_ucl_pipeline/
+- Base: `/n/chb/projects/novitsky_hiv`
+- UCL Pipeline code: `ICONIC_UCL_pipeline`
+- UCL Pipeline runs: `FLOWCELL/iconic_ucl_pipeline/`
 
 ### UCL pipeline Example runs
 
-- All samples: FLOWCELL/iconic_ucl_pipeline/run_all
+- All samples: `FLOWCELL/iconic_ucl_pipeline/run_all`
    - samples.tsv -- list of all samples
    - run.sh -- script to submit job (`sbatch run.sh`)
 
-- Single sample: FC02539/iconic_ucl_pipeline/GEN00075776
+- Single sample: `FC02539/iconic_ucl_pipeline/GEN00075776`
    - samples.tsv -- single sample list
    - run.sh -- script to submit job (`sbatch run.sh`)
 
