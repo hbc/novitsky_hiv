@@ -27,8 +27,8 @@ def main(sample_file, data_dir):
         xl = pd.ExcelFile(sample_file)
         df = xl.parse(xl.sheet_names[0])
     umi_files = []
+    do_rc = 1
     for i, row in df.iterrows():
-        print(row)
         base_fastq = os.path.join(data_dir, "%s*" % row["Sample_Project"], "BaseSpace*",
                                   "%s*" % row["Sample_ID"], row["Sample_ID"])
         r1_tag = row["N_index1_setup"][0]
@@ -39,16 +39,17 @@ def main(sample_file, data_dir):
         except IndexError:
             print(base_fastq + "*_R1_*.fastq.gz")
             raise
-        out_dir = utils.safe_makedir(os.path.join(os.getcwd(), "umis", row["Sample_ID"]))
-        out_fq1 = os.path.join(out_dir, "%s_R1.fq.gz" % row["Sample_ID"])
-        out_fq2 = os.path.join(out_dir, "%s_R2.fq.gz" % row["Sample_ID"])
-        out_umi = os.path.join(out_dir, "%s-umicounts.csv" % row["Sample_ID"])
+        sample = "%s_%s" % (row["Sample_Project"], row["Sample_ID"])
+        out_dir = utils.safe_makedir(os.path.join(os.getcwd(), "umis", sample))
+        out_fq1 = os.path.join(out_dir, "%s_R1.fq.gz" % sample)
+        out_fq2 = os.path.join(out_dir, "%s_R2.fq.gz" % sample)
+        out_umi = os.path.join(out_dir, "%s-umicounts.csv" % sample)
         if not utils.file_exists(out_umi):
             cmd = [sys.executable, os.path.join(os.path.dirname(__file__, ), "prep_umi_from_adapters.py"),
-                   out_dir, row["Sample_ID"], fq1, fq2, r1_tag, r2_tag]
+                   out_dir, sample, fq1, fq2, r1_tag, r2_tag, str(do_rc)]
             print(" ".join(cmd))
             subprocess.check_call(cmd)
-        umi_files.append((row["Sample_ID"], out_fq1, out_fq2, out_umi))
+        umi_files.append((sample, out_fq1, out_fq2, out_umi))
 
 if __name__ == "__main__":
     main(*sys.argv[1:])
