@@ -21,6 +21,7 @@ import sys
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 import pandas as pd
 import editdistance
+import yaml
 
 from bcbio import utils
 
@@ -54,11 +55,18 @@ def main(sample_file, data_dir):
             print(" ".join(cmd))
             subprocess.check_call(cmd)
         umi_files.append((sample, out_fq1, out_fq2, out_umi))
-    for sample, fq1, fq2, umi_file in umi_files:
-        for umi_group in prepare_umi_groups(umi_file):
-            out_fq1 = extract_umi_group(fq1, umi_group)
-            out_fq2 = extract_umi_group(fq2, umi_group)
-            print(sample, umi_group[0], out_fq1, out_fq2)
+    project_name = os.path.splitext(os.path.basename(sample_file))[0].replace("_Sample_Summary", "")
+    config_file = os.path.join(utils.safe_makedir("config"), "%s.csv" % (project_name))
+    with open(config_file, "w") as out_handle:
+        out_handle.write("samplename,description\n")
+        for sample, fq1, fq2, umi_file in umi_files:
+            for umi_group in prepare_umi_groups(umi_file):
+                out_fq1 = extract_umi_group(fq1, umi_group)
+                out_fq2 = extract_umi_group(fq2, umi_group)
+                print(sample, umi_group[0], out_fq1, out_fq2)
+                input_fastq_ref = ";".join([os.path.basename(x) for x in [out_fq1, out_fq2]])
+                out_handle.write("%s,%s\n" % (input_fastq_ref, "%s-%s" % (sample, umi_group[0])))
+    _prepare_bcbio_run(config_file, os.path.join(os.getcwd(), "umis"))
 
 def extract_umi_group(in_fq, umi_group):
     base_dir, base_name = os.path.split(in_fq)
@@ -73,7 +81,7 @@ def extract_umi_group(in_fq, umi_group):
                      out_fqh.write("@%s\n%s\n+\n%s\n" % (name, seq, qual))
         subprocess.check_call(["bgzip", "-f", out_fq])
         subprocess.check_call(["grabix", "index", "%s.gz" % out_fq])
-    return out_fq
+    return out_fq + ".gz"
 
 def prepare_umi_groups(umi_file):
     """Group together UMIs with less than the allowed number of edits.
@@ -108,6 +116,29 @@ def prepare_umi_groups(umi_file):
         if len(out) >= max_groups:
             break
     return out
+
+TEMPLATE = {"details": [
+  {"analysis": "variant2",
+   "genome_build": "HIV-1_C",
+    "algorithm": {"aligner": "bwa",
+                  "disambiguate": ["GRCh37"],
+                  "variantcaller": False}}]}
+
+def _prepare_bcbio_run(config_file, fq_dir):
+    """Prepare directory for running bcbio
+    """
+    config_dir = os.path.dirname(config_file)
+    template_file = os.path.join(config_dir, "hiv_human-template.yaml")
+    with open(template_file, "w") as out_handle:
+        yaml.safe_dump(TEMPLATE, out_handle, default_flow_style=False, allow_unicode=False)
+    prep_sh = os.path.join(config_dir, "prep_config.sh")
+    with open(prep_sh, "w") as out_handle:
+        out_handle.write("#!/bin/bash\n")
+        out_handle.write("set -eu -o pipefail\n\n")
+        out_handle.write("bcbio_nextgen.py -w template %s %s %s/*/split/*.fq.gz\n" % (os.path.basename(template_file), os.path.basename(config_file), fq_dir))
+        base = os.path.splitext(os.path.basename(config_file))[0]
+        out_handle.write("ln -f -s %s/config/%s.yaml .\n" % (base, base))
+    work_dir = utils.safe_makedir("work")
 
 if __name__ == "__main__":
     main(*sys.argv[1:])
